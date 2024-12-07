@@ -45,7 +45,7 @@ Before running the project, ensure you have the following:
 
 1. Clone this repository:  
    ```bash
-   git clone https://github.com/yourusername/face-detection-comparison.git
+   git clone https://github.com/MohitGujarati/Face_detection_py.git
    cd face-detection-comparison
    ```
 
