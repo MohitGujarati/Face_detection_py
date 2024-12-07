@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection Uploader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #file-upload {
+            margin-bottom: 20px;
+        }
+        #progress-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            display: none;
+        }
+        #progress {
+            width: 0%;
+            height: 30px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+        #processed-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #processed-images img {
+            max-width: 200px;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Detection Uploader</h1>
+    
+    <input 
+    type="file" 
+    id="file-upload" 
+    multiple 
+    accept="image/*"
+    >
+    
+    <button id="detect-button">Start Face Detection</button>
+    
+    <div id="progress-bar">
+        <div id="progress"></div>
+    </div>
+    
+    <div id="processed-images"></div>
+
+    <script>
+        const fileUpload = document.getElementById('detect-button');
+        const fileInput = document.getElementById('file-upload');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const processedImagesContainer = document.getElementById('processed-images');
+
+        fileUpload.addEventListener('click', async () => {
+            const files = fileInput.files;
+            
+            // Validate file count
+            if (files.length === 0 || files.length > 10) {
+                alert('Please upload 1-10 images');
+                return;
+            }
+
+            // Reset previous results
+            processedImagesContainer.innerHTML = '';
+            progressBar.style.display = 'block';
+            progress.style.width = '0%';
+
+            // Create form data
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+
+            try {
+                // Simulate progress
+                updateProgress(20);
+
+                // Send request to backend (adjust URL for CORS if needed)
+                const response = await fetch('http://localhost:5000/api/detect-faces', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Face detection failed');
+                }
+
+                // Update progress
+                updateProgress(70);
+
+                // Parse response
+                const data = await response.json();
+
+                // Display processed images
+                data.processed_images.forEach(imagePath => {
+                    const img = document.createElement('img');
+                    img.src = imagePath;
+                    img.alt = 'Processed Image';
+                    processedImagesContainer.appendChild(img);
+                });
+
+                // Complete progress
+                updateProgress(100);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Face detection failed');
+                progressBar.style.display = 'none';
+            }
+        });
+
+        function updateProgress(percent) {
+            progress.style.width = `${percent}%`;
+            progress.textContent = `${percent}%`;
+        }
+    </script>
+</body>
+</html>
