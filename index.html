@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Detection Uploader checking</title>
+    <title>Face Detection Comparison</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -26,24 +26,37 @@
             line-height: 30px;
             color: white;
         }
-        #processed-images {
+        .comparison-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 20px;
+            margin-top: 20px;
         }
-        #processed-images img {
-            max-width: 200px;
+        .image-pair {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 200px;
+        }
+        .image-pair img {
+            max-width: 180px;
+            margin-bottom: 10px;
             border: 2px solid #ddd;
+        }
+        .image-label {
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Face Detection Uploader</h1>
+    <h1>Face Detection Comparison</h1>
     
     <input 
     type="file" 
     id="file-upload" 
-    multiple \
+    multiple 
     accept="image/*"
     >
     
@@ -53,40 +66,40 @@
         <div id="progress"></div>
     </div>
     
-    <div id="processed-images"></div>
+    <div class="comparison-container" id="comparison-container"></div>
 
     <script>
         const fileUpload = document.getElementById('detect-button');
         const fileInput = document.getElementById('file-upload');
         const progressBar = document.getElementById('progress-bar');
         const progress = document.getElementById('progress');
-        const processedImagesContainer = document.getElementById('processed-images');
+        const comparisonContainer = document.getElementById('comparison-container');
+
+        let originalFiles = []; // To store references to original files
 
         fileUpload.addEventListener('click', async () => {
             const files = fileInput.files;
             
-            // Validate file count
             if (files.length === 0 || files.length > 10) {
                 alert('Please upload 1-10 images');
                 return;
             }
 
-            // Reset previous results
-            processedImagesContainer.innerHTML = '';
+            comparisonContainer.innerHTML = '';
             progressBar.style.display = 'block';
             progress.style.width = '0%';
 
-            // Create form data
             const formData = new FormData();
+            originalFiles = []; // Reset original files
+
             for (let file of files) {
                 formData.append('files', file);
+                originalFiles.push(URL.createObjectURL(file)); // Save object URLs for original files
             }
 
             try {
-                // Simulate progress
                 updateProgress(20);
 
-                // Send request to backend (adjust URL for CORS if needed)
                 const response = await fetch('http://localhost:5000/api/detect-faces', {
                     method: 'POST',
                     body: formData
@@ -96,21 +109,42 @@
                     throw new Error('Face detection failed');
                 }
 
-                // Update progress
                 updateProgress(70);
 
-                // Parse response
                 const data = await response.json();
 
-                // Display processed images
-                data.processed_images.forEach(imagePath => {
-                    const img = document.createElement('img');
-                    img.src = imagePath;
-                    img.alt = 'Processed Image';
-                    processedImagesContainer.appendChild(img);
+                // Display original and processed images side by side
+                data.processed_images.forEach((imagePath, index) => {
+                    const pairDiv = document.createElement('div');
+                    pairDiv.className = 'image-pair';
+
+                    // Original Image
+                    const originalImg = document.createElement('img');
+                    originalImg.src = originalFiles[index];
+                    originalImg.alt = 'Original Image';
+
+                    const originalLabel = document.createElement('div');
+                    originalLabel.className = 'image-label';
+                    originalLabel.textContent = 'Original Image';
+
+                    // Processed Image
+                    const processedImg = document.createElement('img');
+                    processedImg.src = `http://localhost:5000${imagePath}`;
+                    processedImg.alt = 'Processed Image';
+
+                    const processedLabel = document.createElement('div');
+                    processedLabel.className = 'image-label';
+                    processedLabel.textContent = 'Processed Image';
+
+                    // Append elements to pairDiv
+                    pairDiv.appendChild(originalLabel);
+                    pairDiv.appendChild(originalImg);
+                    pairDiv.appendChild(processedLabel);
+                    pairDiv.appendChild(processedImg);
+
+                    comparisonContainer.appendChild(pairDiv);
                 });
 
-                // Complete progress
                 updateProgress(100);
             } catch (error) {
                 console.error('Error:', error);
