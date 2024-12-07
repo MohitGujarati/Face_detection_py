@@ -12,7 +12,7 @@ CORS(app)  # Enable CORS for all routes
 # Absolute paths to ensure correct file serving
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-OUTPUT_FOLDER = os.path.join(BASE_DIR, 'FACE-DETECTION-WEB', 'processed_images')
+OUTPUT_FOLDER = os.path.join(BASE_DIR, 'processed_images')
 
 # Ensure upload and output folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -40,9 +40,9 @@ def detect_faces_in_image(image_path):
     # Save the image
     cv2.imwrite(output_path, img)
     
-    return f'/FACE-DETECTION-WEB/processed_images/{output_filename}', len(faces)
+    return f'/processed_images/{output_filename}', len(faces)
 
-@app.route('/FACE-DETECTION-WEB/processed_images/<filename>')
+@app.route('/FACE-DETECTION-WEB/processed_images/')
 def serve_processed_image(filename):
     return send_from_directory(OUTPUT_FOLDER, filename)
 
